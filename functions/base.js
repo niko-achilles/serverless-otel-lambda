@@ -1,6 +1,5 @@
 const commonMiddleware = require("./commonMiddleware");
 const cors = require("@middy/http-cors");
-
 const axios = require("axios").default;
 const Log = require("@dazn/lambda-powertools-logger");
 const CorrelationIds = require("@dazn/lambda-powertools-correlation-ids");
