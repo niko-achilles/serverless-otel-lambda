@@ -1,5 +1,5 @@
 node_modules
-telemetry/collector.yaml
-telemetry/collector2.yaml
-
+telemetry
+telemetry
+telemetry
 .serverless
