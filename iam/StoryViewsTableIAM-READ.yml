@@ -1,0 +1,8 @@
+StoryViewsTableIAM:
+  Effect: Allow
+  Action:
+    - dynamodb:Scan
+    - dynamodb:Query
+    - dynamodb:GetItem
+  Resource:
+    - ${self:custom.StoryViewsTable.arn}

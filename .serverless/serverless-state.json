@@ -1,0 +1,1684 @@
+{
+  "service": {
+    "service": "open-telemetry-story-views",
+    "serviceObject": {
+      "name": "open-telemetry-story-views"
+    },
+    "provider": {
+      "name": "aws",
+      "runtime": "nodejs14.x",
+      "versionFunctions": false,
+      "stage": "dev",
+      "region": "eu-west-2",
+      "apiGateway": {
+        "apiKeys": [
+          "dev-privateKey"
+        ],
+        "metrics": true
+      },
+      "tracing": {
+        "apiGateway": true,
+        "lambda": true
+      },
+      "iamRoleStatements": [
+        {
+          "Effect": "Allow",
+          "Action": [
+            "xray:PutTraceSegments",
+            "xray:PutTelemetryRecords"
+          ],
+          "Resource": "*"
+        }
+      ],
+      "environment": {
+        "LOG_LEVEL": "DEBUG",
+        "STAGE": "dev",
+        "NAMESPACE": "OPEN-TELEMETRY-STORY-VIEWS"
+      },
+      "compiledCloudFormationTemplate": {
+        "AWSTemplateFormatVersion": "2010-09-09",
+        "Description": "The AWS CloudFormation template for this Serverless application",
+        "Resources": {
+          "ServerlessDeploymentBucket": {
+            "Type": "AWS::S3::Bucket",
+            "Properties": {
+              "BucketEncryption": {
+                "ServerSideEncryptionConfiguration": [
+                  {
+                    "ServerSideEncryptionByDefault": {
+                      "SSEAlgorithm": "AES256"
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "ServerlessDeploymentBucketPolicy": {
+            "Type": "AWS::S3::BucketPolicy",
+            "Properties": {
+              "Bucket": {
+                "Ref": "ServerlessDeploymentBucket"
+              },
+              "PolicyDocument": {
+                "Statement": [
+                  {
+                    "Action": "s3:*",
+                    "Effect": "Deny",
+                    "Principal": "*",
+                    "Resource": [
+                      {
+                        "Fn::Join": [
+                          "",
+                          [
+                            "arn:",
+                            {
+                              "Ref": "AWS::Partition"
+                            },
+                            ":s3:::",
+                            {
+                              "Ref": "ServerlessDeploymentBucket"
+                            },
+                            "/*"
+                          ]
+                        ]
+                      },
+                      {
+                        "Fn::Join": [
+                          "",
+                          [
+                            "arn:",
+                            {
+                              "Ref": "AWS::Partition"
+                            },
+                            ":s3:::",
+                            {
+                              "Ref": "ServerlessDeploymentBucket"
+                            }
+                          ]
+                        ]
+                      }
+                    ],
+                    "Condition": {
+                      "Bool": {
+                        "aws:SecureTransport": false
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "BaseLogGroup": {
+            "Type": "AWS::Logs::LogGroup",
+            "Properties": {
+              "LogGroupName": "/aws/lambda/open-telemetry-story-views-dev-base"
+            }
+          },
+          "GetViewLogGroup": {
+            "Type": "AWS::Logs::LogGroup",
+            "Properties": {
+              "LogGroupName": "/aws/lambda/open-telemetry-story-views-dev-getView"
+            }
+          },
+          "RegisterViewLogGroup": {
+            "Type": "AWS::Logs::LogGroup",
+            "Properties": {
+              "LogGroupName": "/aws/lambda/open-telemetry-story-views-dev-registerView"
+            }
+          },
+          "ViewsAggregateLogGroup": {
+            "Type": "AWS::Logs::LogGroup",
+            "Properties": {
+              "LogGroupName": "/aws/lambda/open-telemetry-story-views-dev-viewsAggregate"
+            }
+          },
+          "IamRoleLambdaExecution": {
+            "Type": "AWS::IAM::Role",
+            "Properties": {
+              "AssumeRolePolicyDocument": {
+                "Version": "2012-10-17",
+                "Statement": [
+                  {
+                    "Effect": "Allow",
+                    "Principal": {
+                      "Service": [
+                        "lambda.amazonaws.com"
+                      ]
+                    },
+                    "Action": [
+                      "sts:AssumeRole"
+                    ]
+                  }
+                ]
+              },
+              "Policies": [
+                {
+                  "PolicyName": {
+                    "Fn::Join": [
+                      "-",
+                      [
+                        "open-telemetry-story-views",
+                        "dev",
+                        "lambda"
+                      ]
+                    ]
+                  },
+                  "PolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                      {
+                        "Effect": "Allow",
+                        "Action": [
+                          "logs:CreateLogStream",
+                          "logs:CreateLogGroup"
+                        ],
+                        "Resource": [
+                          {
+                            "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/open-telemetry-story-views-dev*:*"
+                          }
+                        ]
+                      },
+                      {
+                        "Effect": "Allow",
+                        "Action": [
+                          "logs:PutLogEvents"
+                        ],
+                        "Resource": [
+                          {
+                            "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/open-telemetry-story-views-dev*:*:*"
+                          }
+                        ]
+                      },
+                      {
+                        "$ref": "$[\"service\"][\"provider\"][\"iamRoleStatements\"][0]"
+                      },
+                      {
+                        "Effect": "Allow",
+                        "Action": [
+                          "xray:PutTraceSegments",
+                          "xray:PutTelemetryRecords"
+                        ],
+                        "Resource": [
+                          "*"
+                        ]
+                      },
+                      {
+                        "Effect": "Allow",
+                        "Action": [
+                          "dynamodb:GetRecords",
+                          "dynamodb:GetShardIterator",
+                          "dynamodb:DescribeStream",
+                          "dynamodb:ListStreams"
+                        ],
+                        "Resource": [
+                          {
+                            "Fn::GetAtt": [
+                              "StoryViewsTable",
+                              "StreamArn"
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                }
+              ],
+              "Path": "/",
+              "RoleName": {
+                "Fn::Join": [
+                  "-",
+                  [
+                    "open-telemetry-story-views",
+                    "dev",
+                    {
+                      "Ref": "AWS::Region"
+                    },
+                    "lambdaRole"
+                  ]
+                ]
+              }
+            }
+          },
+          "BaseLambdaFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+              "Code": {
+                "S3Bucket": {
+                  "Ref": "ServerlessDeploymentBucket"
+                },
+                "S3Key": "serverless/open-telemetry-story-views/dev/1622882716379-2021-06-05T08:45:16.379Z/open-telemetry-story-views.zip"
+              },
+              "Handler": "functions/base.handler",
+              "Runtime": "nodejs14.x",
+              "FunctionName": "open-telemetry-story-views-dev-base",
+              "MemorySize": 1024,
+              "Timeout": 6,
+              "TracingConfig": {
+                "Mode": "Active"
+              },
+              "Environment": {
+                "Variables": {
+                  "LOG_LEVEL": "DEBUG",
+                  "STAGE": "dev",
+                  "NAMESPACE": "OPEN-TELEMETRY-STORY-VIEWS",
+                  "STORY_VIEWS_GET_API": {
+                    "Fn::Join": [
+                      "",
+                      [
+                        "https://",
+                        {
+                          "Ref": "ApiGatewayRestApi"
+                        },
+                        ".execute-api.eu-west-2.amazonaws.com/dev/views"
+                      ]
+                    ]
+                  },
+                  "STORY_VIEWS_POST_API": {
+                    "Fn::Join": [
+                      "",
+                      [
+                        "https://",
+                        {
+                          "Ref": "ApiGatewayRestApi"
+                        },
+                        ".execute-api.eu-west-2.amazonaws.com/dev/views/register"
+                      ]
+                    ]
+                  },
+                  "AWS_LAMBDA_EXEC_WRAPPER": "/opt/otel-handler"
+                }
+              },
+              "Role": {
+                "Fn::GetAtt": [
+                  "BaseIamRoleLambdaExecution",
+                  "Arn"
+                ]
+              },
+              "Layers": [
+                "arn:aws:lambda:eu-west-2:901920570463:layer:aws-otel-nodejs-ver-0-18-0:1"
+              ]
+            },
+            "DependsOn": [
+              "BaseIamRoleLambdaExecution",
+              "BaseLogGroup"
+            ]
+          },
+          "GetViewLambdaFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+              "Code": {
+                "S3Bucket": {
+                  "Ref": "ServerlessDeploymentBucket"
+                },
+                "S3Key": "serverless/open-telemetry-story-views/dev/1622882716379-2021-06-05T08:45:16.379Z/open-telemetry-story-views.zip"
+              },
+              "Handler": "functions/getView.handler",
+              "Runtime": "nodejs14.x",
+              "FunctionName": "open-telemetry-story-views-dev-getView",
+              "MemorySize": 1024,
+              "Timeout": 6,
+              "TracingConfig": {
+                "Mode": "Active"
+              },
+              "Environment": {
+                "Variables": {
+                  "LOG_LEVEL": "DEBUG",
+                  "STAGE": "dev",
+                  "NAMESPACE": "OPEN-TELEMETRY-STORY-VIEWS",
+                  "STORY_VIEWS_TABLE": {
+                    "Ref": "StoryViewsTable"
+                  },
+                  "AWS_LAMBDA_EXEC_WRAPPER": "/opt/otel-handler"
+                }
+              },
+              "Role": {
+                "Fn::GetAtt": [
+                  "GetViewIamRoleLambdaExecution",
+                  "Arn"
+                ]
+              },
+              "Layers": [
+                "arn:aws:lambda:eu-west-2:901920570463:layer:aws-otel-nodejs-ver-0-18-0:1"
+              ]
+            },
+            "DependsOn": [
+              "GetViewIamRoleLambdaExecution",
+              "GetViewLogGroup"
+            ]
+          },
+          "RegisterViewLambdaFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+              "Code": {
+                "S3Bucket": {
+                  "Ref": "ServerlessDeploymentBucket"
+                },
+                "S3Key": "serverless/open-telemetry-story-views/dev/1622882716379-2021-06-05T08:45:16.379Z/open-telemetry-story-views.zip"
+              },
+              "Handler": "functions/registerView.handler",
+              "Runtime": "nodejs14.x",
+              "FunctionName": "open-telemetry-story-views-dev-registerView",
+              "MemorySize": 1024,
+              "Timeout": 6,
+              "TracingConfig": {
+                "Mode": "Active"
+              },
+              "Environment": {
+                "Variables": {
+                  "LOG_LEVEL": "DEBUG",
+                  "STAGE": "dev",
+                  "NAMESPACE": "OPEN-TELEMETRY-STORY-VIEWS",
+                  "STORY_VIEWS_TABLE": {
+                    "Ref": "StoryViewsTable"
+                  },
+                  "AWS_LAMBDA_EXEC_WRAPPER": "/opt/otel-handler"
+                }
+              },
+              "Role": {
+                "Fn::GetAtt": [
+                  "RegisterViewIamRoleLambdaExecution",
+                  "Arn"
+                ]
+              },
+              "Layers": [
+                "arn:aws:lambda:eu-west-2:901920570463:layer:aws-otel-nodejs-ver-0-18-0:1"
+              ]
+            },
+            "DependsOn": [
+              "RegisterViewIamRoleLambdaExecution",
+              "RegisterViewLogGroup"
+            ]
+          },
+          "ViewsAggregateLambdaFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+              "Code": {
+                "S3Bucket": {
+                  "Ref": "ServerlessDeploymentBucket"
+                },
+                "S3Key": "serverless/open-telemetry-story-views/dev/1622882716379-2021-06-05T08:45:16.379Z/open-telemetry-story-views.zip"
+              },
+              "Handler": "functions/viewsAggregator.handler",
+              "Runtime": "nodejs14.x",
+              "FunctionName": "open-telemetry-story-views-dev-viewsAggregate",
+              "MemorySize": 1024,
+              "Timeout": 6,
+              "TracingConfig": {
+                "Mode": "Active"
+              },
+              "Environment": {
+                "Variables": {
+                  "LOG_LEVEL": "DEBUG",
+                  "STAGE": "dev",
+                  "NAMESPACE": "OPEN-TELEMETRY-STORY-VIEWS",
+                  "STORY_VIEWS_TABLE": {
+                    "Ref": "StoryViewsTable"
+                  },
+                  "AWS_LAMBDA_EXEC_WRAPPER": "/opt/otel-handler"
+                }
+              },
+              "Role": {
+                "Fn::GetAtt": [
+                  "ViewsAggregateIamRoleLambdaExecution",
+                  "Arn"
+                ]
+              },
+              "Layers": [
+                "arn:aws:lambda:eu-west-2:901920570463:layer:aws-otel-nodejs-ver-0-18-0:1"
+              ]
+            },
+            "DependsOn": [
+              "ViewsAggregateIamRoleLambdaExecution",
+              "ViewsAggregateLogGroup"
+            ]
+          },
+          "ApiGatewayRestApi": {
+            "Type": "AWS::ApiGateway::RestApi",
+            "Properties": {
+              "Name": "dev-open-telemetry-story-views",
+              "EndpointConfiguration": {
+                "Types": [
+                  "EDGE"
+                ]
+              },
+              "Policy": ""
+            }
+          },
+          "ApiGatewayResourceViews": {
+            "Type": "AWS::ApiGateway::Resource",
+            "Properties": {
+              "ParentId": {
+                "Fn::GetAtt": [
+                  "ApiGatewayRestApi",
+                  "RootResourceId"
+                ]
+              },
+              "PathPart": "views",
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              }
+            }
+          },
+          "ApiGatewayResourceViewsIdVar": {
+            "Type": "AWS::ApiGateway::Resource",
+            "Properties": {
+              "ParentId": {
+                "Ref": "ApiGatewayResourceViews"
+              },
+              "PathPart": "{id}",
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              }
+            }
+          },
+          "ApiGatewayResourceViewsRegister": {
+            "Type": "AWS::ApiGateway::Resource",
+            "Properties": {
+              "ParentId": {
+                "Ref": "ApiGatewayResourceViews"
+              },
+              "PathPart": "register",
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              }
+            }
+          },
+          "ApiGatewayMethodViewsOptions": {
+            "Type": "AWS::ApiGateway::Method",
+            "Properties": {
+              "AuthorizationType": "NONE",
+              "HttpMethod": "OPTIONS",
+              "MethodResponses": [
+                {
+                  "StatusCode": "200",
+                  "ResponseParameters": {
+                    "method.response.header.Access-Control-Allow-Origin": true,
+                    "method.response.header.Access-Control-Allow-Headers": true,
+                    "method.response.header.Access-Control-Allow-Methods": true
+                  },
+                  "ResponseModels": {}
+                }
+              ],
+              "RequestParameters": {},
+              "Integration": {
+                "Type": "MOCK",
+                "RequestTemplates": {
+                  "application/json": "{statusCode:200}"
+                },
+                "ContentHandling": "CONVERT_TO_TEXT",
+                "IntegrationResponses": [
+                  {
+                    "StatusCode": "200",
+                    "ResponseParameters": {
+                      "method.response.header.Access-Control-Allow-Origin": "'*'",
+                      "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent'",
+                      "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,DELETE,GET,HEAD,PATCH,POST,PUT'"
+                    },
+                    "ResponseTemplates": {
+                      "application/json": "#set($origin = $input.params(\"Origin\"))\n#if($origin == \"\") #set($origin = $input.params(\"origin\")) #end\n#if($origin.matches(\".+\")) #set($context.responseOverride.header.Access-Control-Allow-Origin = $origin) #end"
+                    }
+                  }
+                ]
+              },
+              "ResourceId": {
+                "Ref": "ApiGatewayResourceViews"
+              },
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              }
+            }
+          },
+          "ApiGatewayMethodViewsAny": {
+            "Type": "AWS::ApiGateway::Method",
+            "Properties": {
+              "HttpMethod": "ANY",
+              "RequestParameters": {},
+              "ResourceId": {
+                "Ref": "ApiGatewayResourceViews"
+              },
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              },
+              "ApiKeyRequired": true,
+              "AuthorizationType": "NONE",
+              "Integration": {
+                "IntegrationHttpMethod": "POST",
+                "Type": "AWS_PROXY",
+                "Uri": {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition"
+                      },
+                      ":apigateway:",
+                      {
+                        "Ref": "AWS::Region"
+                      },
+                      ":lambda:path/2015-03-31/functions/",
+                      {
+                        "Fn::GetAtt": [
+                          "BaseLambdaFunction",
+                          "Arn"
+                        ]
+                      },
+                      "/invocations"
+                    ]
+                  ]
+                }
+              },
+              "MethodResponses": []
+            }
+          },
+          "ApiGatewayMethodViewsIdVarGet": {
+            "Type": "AWS::ApiGateway::Method",
+            "Properties": {
+              "HttpMethod": "GET",
+              "RequestParameters": {},
+              "ResourceId": {
+                "Ref": "ApiGatewayResourceViewsIdVar"
+              },
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              },
+              "ApiKeyRequired": false,
+              "AuthorizationType": "NONE",
+              "Integration": {
+                "IntegrationHttpMethod": "POST",
+                "Type": "AWS_PROXY",
+                "Uri": {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition"
+                      },
+                      ":apigateway:",
+                      {
+                        "Ref": "AWS::Region"
+                      },
+                      ":lambda:path/2015-03-31/functions/",
+                      {
+                        "Fn::GetAtt": [
+                          "GetViewLambdaFunction",
+                          "Arn"
+                        ]
+                      },
+                      "/invocations"
+                    ]
+                  ]
+                }
+              },
+              "MethodResponses": []
+            }
+          },
+          "ApiGatewayMethodViewsRegisterPost": {
+            "Type": "AWS::ApiGateway::Method",
+            "Properties": {
+              "HttpMethod": "POST",
+              "RequestParameters": {},
+              "ResourceId": {
+                "Ref": "ApiGatewayResourceViewsRegister"
+              },
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              },
+              "ApiKeyRequired": false,
+              "AuthorizationType": "NONE",
+              "Integration": {
+                "IntegrationHttpMethod": "POST",
+                "Type": "AWS_PROXY",
+                "Uri": {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition"
+                      },
+                      ":apigateway:",
+                      {
+                        "Ref": "AWS::Region"
+                      },
+                      ":lambda:path/2015-03-31/functions/",
+                      {
+                        "Fn::GetAtt": [
+                          "RegisterViewLambdaFunction",
+                          "Arn"
+                        ]
+                      },
+                      "/invocations"
+                    ]
+                  ]
+                }
+              },
+              "MethodResponses": []
+            }
+          },
+          "ApiGatewayDeployment1622882653882": {
+            "Type": "AWS::ApiGateway::Deployment",
+            "Properties": {
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              },
+              "StageName": "dev"
+            },
+            "DependsOn": [
+              "ApiGatewayMethodViewsOptions",
+              "ApiGatewayMethodViewsAny",
+              "ApiGatewayMethodViewsIdVarGet",
+              "ApiGatewayMethodViewsRegisterPost"
+            ]
+          },
+          "ApiGatewayApiKey1": {
+            "Type": "AWS::ApiGateway::ApiKey",
+            "Properties": {
+              "Enabled": true,
+              "Name": "dev-privateKey",
+              "StageKeys": [
+                {
+                  "RestApiId": {
+                    "Ref": "ApiGatewayRestApi"
+                  },
+                  "StageName": "dev"
+                }
+              ]
+            },
+            "DependsOn": "ApiGatewayDeployment1622882653882"
+          },
+          "ApiGatewayUsagePlan": {
+            "Type": "AWS::ApiGateway::UsagePlan",
+            "DependsOn": "ApiGatewayDeployment1622882653882",
+            "Properties": {
+              "ApiStages": [
+                {
+                  "ApiId": {
+                    "Ref": "ApiGatewayRestApi"
+                  },
+                  "Stage": "dev"
+                }
+              ],
+              "Description": "Usage plan for open-telemetry-story-views dev stage",
+              "UsagePlanName": "open-telemetry-story-views-dev"
+            }
+          },
+          "ApiGatewayUsagePlanKey1": {
+            "Type": "AWS::ApiGateway::UsagePlanKey",
+            "Properties": {
+              "KeyId": {
+                "Ref": "ApiGatewayApiKey1"
+              },
+              "KeyType": "API_KEY",
+              "UsagePlanId": {
+                "Ref": "ApiGatewayUsagePlan"
+              }
+            }
+          },
+          "BaseLambdaPermissionApiGateway": {
+            "Type": "AWS::Lambda::Permission",
+            "Properties": {
+              "FunctionName": {
+                "Fn::GetAtt": [
+                  "BaseLambdaFunction",
+                  "Arn"
+                ]
+              },
+              "Action": "lambda:InvokeFunction",
+              "Principal": "apigateway.amazonaws.com",
+              "SourceArn": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:",
+                    {
+                      "Ref": "AWS::Partition"
+                    },
+                    ":execute-api:",
+                    {
+                      "Ref": "AWS::Region"
+                    },
+                    ":",
+                    {
+                      "Ref": "AWS::AccountId"
+                    },
+                    ":",
+                    {
+                      "Ref": "ApiGatewayRestApi"
+                    },
+                    "/*/*"
+                  ]
+                ]
+              }
+            }
+          },
+          "GetViewLambdaPermissionApiGateway": {
+            "Type": "AWS::Lambda::Permission",
+            "Properties": {
+              "FunctionName": {
+                "Fn::GetAtt": [
+                  "GetViewLambdaFunction",
+                  "Arn"
+                ]
+              },
+              "Action": "lambda:InvokeFunction",
+              "Principal": "apigateway.amazonaws.com",
+              "SourceArn": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:",
+                    {
+                      "Ref": "AWS::Partition"
+                    },
+                    ":execute-api:",
+                    {
+                      "Ref": "AWS::Region"
+                    },
+                    ":",
+                    {
+                      "Ref": "AWS::AccountId"
+                    },
+                    ":",
+                    {
+                      "Ref": "ApiGatewayRestApi"
+                    },
+                    "/*/*"
+                  ]
+                ]
+              }
+            }
+          },
+          "RegisterViewLambdaPermissionApiGateway": {
+            "Type": "AWS::Lambda::Permission",
+            "Properties": {
+              "FunctionName": {
+                "Fn::GetAtt": [
+                  "RegisterViewLambdaFunction",
+                  "Arn"
+                ]
+              },
+              "Action": "lambda:InvokeFunction",
+              "Principal": "apigateway.amazonaws.com",
+              "SourceArn": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:",
+                    {
+                      "Ref": "AWS::Partition"
+                    },
+                    ":execute-api:",
+                    {
+                      "Ref": "AWS::Region"
+                    },
+                    ":",
+                    {
+                      "Ref": "AWS::AccountId"
+                    },
+                    ":",
+                    {
+                      "Ref": "ApiGatewayRestApi"
+                    },
+                    "/*/*"
+                  ]
+                ]
+              }
+            }
+          },
+          "ViewsAggregateEventSourceMappingDynamodbStoryViewsTable": {
+            "Type": "AWS::Lambda::EventSourceMapping",
+            "DependsOn": "ViewsAggregateIamRoleLambdaExecution",
+            "Properties": {
+              "BatchSize": 1,
+              "EventSourceArn": {
+                "Fn::GetAtt": [
+                  "StoryViewsTable",
+                  "StreamArn"
+                ]
+              },
+              "FunctionName": {
+                "Fn::GetAtt": [
+                  "ViewsAggregateLambdaFunction",
+                  "Arn"
+                ]
+              },
+              "StartingPosition": "LATEST",
+              "Enabled": true
+            }
+          },
+          "BaseIamRoleLambdaExecution": {
+            "Type": "AWS::IAM::Role",
+            "Properties": {
+              "AssumeRolePolicyDocument": {
+                "Version": "2012-10-17",
+                "Statement": [
+                  {
+                    "Effect": "Allow",
+                    "Principal": {
+                      "Service": [
+                        "lambda.amazonaws.com"
+                      ]
+                    },
+                    "Action": [
+                      "sts:AssumeRole"
+                    ]
+                  }
+                ]
+              },
+              "Policies": [
+                {
+                  "PolicyName": {
+                    "Fn::Join": [
+                      "-",
+                      [
+                        "open-telemetry-story-views",
+                        "dev",
+                        "lambda"
+                      ]
+                    ]
+                  },
+                  "PolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                      {
+                        "Effect": "Allow",
+                        "Action": [
+                          "logs:CreateLogStream",
+                          "logs:CreateLogGroup",
+                          "logs:PutLogEvents"
+                        ],
+                        "Resource": [
+                          {
+                            "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/open-telemetry-story-views-dev-base:*:*"
+                          }
+                        ]
+                      },
+                      {
+                        "$ref": "$[\"service\"][\"provider\"][\"iamRoleStatements\"][0]"
+                      },
+                      {
+                        "Effect": "Allow",
+                        "Action": [
+                          "execute-api:Invoke"
+                        ],
+                        "Resource": {
+                          "Fn::Sub": "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:*/*/GET/views/*"
+                        }
+                      },
+                      {
+                        "Effect": "Allow",
+                        "Action": [
+                          "execute-api:Invoke"
+                        ],
+                        "Resource": {
+                          "Fn::Sub": "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:*/*/POST/views/register"
+                        }
+                      }
+                    ]
+                  }
+                }
+              ],
+              "Path": "/",
+              "RoleName": {
+                "Fn::Join": [
+                  "-",
+                  [
+                    "open-telemetry-story-views",
+                    "dev",
+                    "base",
+                    {
+                      "Ref": "AWS::Region"
+                    },
+                    "lambdaRole"
+                  ]
+                ]
+              },
+              "ManagedPolicyArns": []
+            }
+          },
+          "GetViewIamRoleLambdaExecution": {
+            "Type": "AWS::IAM::Role",
+            "Properties": {
+              "AssumeRolePolicyDocument": {
+                "Version": "2012-10-17",
+                "Statement": [
+                  {
+                    "Effect": "Allow",
+                    "Principal": {
+                      "Service": [
+                        "lambda.amazonaws.com"
+                      ]
+                    },
+                    "Action": [
+                      "sts:AssumeRole"
+                    ]
+                  }
+                ]
+              },
+              "Policies": [
+                {
+                  "PolicyName": {
+                    "Fn::Join": [
+                      "-",
+                      [
+                        "open-telemetry-story-views",
+                        "dev",
+                        "lambda"
+                      ]
+                    ]
+                  },
+                  "PolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                      {
+                        "Effect": "Allow",
+                        "Action": [
+                          "logs:CreateLogStream",
+                          "logs:CreateLogGroup",
+                          "logs:PutLogEvents"
+                        ],
+                        "Resource": [
+                          {
+                            "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/open-telemetry-story-views-dev-getView:*:*"
+                          }
+                        ]
+                      },
+                      {
+                        "$ref": "$[\"service\"][\"provider\"][\"iamRoleStatements\"][0]"
+                      },
+                      {
+                        "Effect": "Allow",
+                        "Action": [
+                          "dynamodb:Scan",
+                          "dynamodb:Query",
+                          "dynamodb:GetItem"
+                        ],
+                        "Resource": [
+                          {
+                            "Fn::GetAtt": [
+                              "StoryViewsTable",
+                              "Arn"
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                }
+              ],
+              "Path": "/",
+              "RoleName": {
+                "Fn::Join": [
+                  "-",
+                  [
+                    "open-telemetry-story-views",
+                    "dev",
+                    "getView",
+                    {
+                      "Ref": "AWS::Region"
+                    },
+                    "lambdaRole"
+                  ]
+                ]
+              },
+              "ManagedPolicyArns": []
+            }
+          },
+          "RegisterViewIamRoleLambdaExecution": {
+            "Type": "AWS::IAM::Role",
+            "Properties": {
+              "AssumeRolePolicyDocument": {
+                "Version": "2012-10-17",
+                "Statement": [
+                  {
+                    "Effect": "Allow",
+                    "Principal": {
+                      "Service": [
+                        "lambda.amazonaws.com"
+                      ]
+                    },
+                    "Action": [
+                      "sts:AssumeRole"
+                    ]
+                  }
+                ]
+              },
+              "Policies": [
+                {
+                  "PolicyName": {
+                    "Fn::Join": [
+                      "-",
+                      [
+                        "open-telemetry-story-views",
+                        "dev",
+                        "lambda"
+                      ]
+                    ]
+                  },
+                  "PolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                      {
+                        "Effect": "Allow",
+                        "Action": [
+                          "logs:CreateLogStream",
+                          "logs:CreateLogGroup",
+                          "logs:PutLogEvents"
+                        ],
+                        "Resource": [
+                          {
+                            "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/open-telemetry-story-views-dev-registerView:*:*"
+                          }
+                        ]
+                      },
+                      {
+                        "$ref": "$[\"service\"][\"provider\"][\"iamRoleStatements\"][0]"
+                      },
+                      {
+                        "Effect": "Allow",
+                        "Action": [
+                          "dynamodb:UpdateItem",
+                          "dynamodb:PutItem"
+                        ],
+                        "Resource": [
+                          {
+                            "Fn::GetAtt": [
+                              "StoryViewsTable",
+                              "Arn"
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                }
+              ],
+              "Path": "/",
+              "RoleName": {
+                "Fn::Join": [
+                  "-",
+                  [
+                    "open-telemetry-story-views",
+                    "dev",
+                    "registerView",
+                    {
+                      "Ref": "AWS::Region"
+                    },
+                    "lambdaRole"
+                  ]
+                ]
+              },
+              "ManagedPolicyArns": []
+            }
+          },
+          "ViewsAggregateIamRoleLambdaExecution": {
+            "Type": "AWS::IAM::Role",
+            "Properties": {
+              "AssumeRolePolicyDocument": {
+                "Version": "2012-10-17",
+                "Statement": [
+                  {
+                    "Effect": "Allow",
+                    "Principal": {
+                      "Service": [
+                        "lambda.amazonaws.com"
+                      ]
+                    },
+                    "Action": [
+                      "sts:AssumeRole"
+                    ]
+                  }
+                ]
+              },
+              "Policies": [
+                {
+                  "PolicyName": {
+                    "Fn::Join": [
+                      "-",
+                      [
+                        "open-telemetry-story-views",
+                        "dev",
+                        "lambda"
+                      ]
+                    ]
+                  },
+                  "PolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                      {
+                        "Effect": "Allow",
+                        "Action": [
+                          "logs:CreateLogStream",
+                          "logs:CreateLogGroup",
+                          "logs:PutLogEvents"
+                        ],
+                        "Resource": [
+                          {
+                            "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/open-telemetry-story-views-dev-viewsAggregate:*:*"
+                          }
+                        ]
+                      },
+                      {
+                        "Effect": "Allow",
+                        "Action": [
+                          "dynamodb:GetRecords",
+                          "dynamodb:GetShardIterator",
+                          "dynamodb:DescribeStream",
+                          "dynamodb:ListStreams"
+                        ],
+                        "Resource": [
+                          {
+                            "$ref": "$[\"service\"][\"provider\"][\"compiledCloudFormationTemplate\"][\"Resources\"][\"IamRoleLambdaExecution\"][\"Properties\"][\"Policies\"][0][\"PolicyDocument\"][\"Statement\"][4][\"Resource\"][0]"
+                          }
+                        ]
+                      },
+                      {
+                        "$ref": "$[\"service\"][\"provider\"][\"iamRoleStatements\"][0]"
+                      },
+                      {
+                        "Effect": "Allow",
+                        "Action": [
+                          "dynamodb:GetRecords",
+                          "dynamodb:GetShardIterator",
+                          "dynamodb:DescribeStream",
+                          "dynamodb:ListStreams"
+                        ],
+                        "Resource": [
+                          {
+                            "Fn::GetAtt": [
+                              "StoryViewsTable",
+                              "Arn"
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "Effect": "Allow",
+                        "Action": [
+                          "dynamodb:Scan",
+                          "dynamodb:Query",
+                          "dynamodb:GetItem"
+                        ],
+                        "Resource": [
+                          {
+                            "Fn::GetAtt": [
+                              "StoryViewsTable",
+                              "Arn"
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "Effect": "Allow",
+                        "Action": [
+                          "dynamodb:UpdateItem",
+                          "dynamodb:PutItem"
+                        ],
+                        "Resource": [
+                          {
+                            "Fn::GetAtt": [
+                              "StoryViewsTable",
+                              "Arn"
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                }
+              ],
+              "Path": "/",
+              "RoleName": {
+                "Fn::Join": [
+                  "-",
+                  [
+                    "open-telemetry-story-views",
+                    "dev",
+                    "viewsAggregate",
+                    {
+                      "Ref": "AWS::Region"
+                    }
+                  ]
+                ]
+              },
+              "ManagedPolicyArns": []
+            }
+          },
+          "StoryViewsTable": {
+            "Type": "AWS::DynamoDB::Table",
+            "Properties": {
+              "TableName": "StoryViewsTable-dev",
+              "AttributeDefinitions": [
+                {
+                  "AttributeName": "id",
+                  "AttributeType": "S"
+                }
+              ],
+              "KeySchema": [
+                {
+                  "AttributeName": "id",
+                  "KeyType": "HASH"
+                }
+              ],
+              "BillingMode": "PAY_PER_REQUEST",
+              "StreamSpecification": {
+                "StreamViewType": "NEW_IMAGE"
+              }
+            }
+          }
+        },
+        "Outputs": {
+          "ServerlessDeploymentBucketName": {
+            "Value": {
+              "Ref": "ServerlessDeploymentBucket"
+            },
+            "Export": {
+              "Name": "sls-open-telemetry-story-views-dev-ServerlessDeploymentBucketName"
+            }
+          },
+          "ServiceEndpoint": {
+            "Description": "URL of the service endpoint",
+            "Value": {
+              "Fn::Join": [
+                "",
+                [
+                  "https://",
+                  {
+                    "Ref": "ApiGatewayRestApi"
+                  },
+                  ".execute-api.",
+                  {
+                    "Ref": "AWS::Region"
+                  },
+                  ".",
+                  {
+                    "Ref": "AWS::URLSuffix"
+                  },
+                  "/dev"
+                ]
+              ]
+            },
+            "Export": {
+              "Name": "sls-open-telemetry-story-views-dev-ServiceEndpoint"
+            }
+          }
+        }
+      },
+      "coreCloudFormationTemplate": {
+        "AWSTemplateFormatVersion": "2010-09-09",
+        "Description": "The AWS CloudFormation template for this Serverless application",
+        "Resources": {
+          "ServerlessDeploymentBucket": {
+            "Type": "AWS::S3::Bucket",
+            "Properties": {
+              "BucketEncryption": {
+                "ServerSideEncryptionConfiguration": [
+                  {
+                    "ServerSideEncryptionByDefault": {
+                      "SSEAlgorithm": "AES256"
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "ServerlessDeploymentBucketPolicy": {
+            "Type": "AWS::S3::BucketPolicy",
+            "Properties": {
+              "Bucket": {
+                "Ref": "ServerlessDeploymentBucket"
+              },
+              "PolicyDocument": {
+                "Statement": [
+                  {
+                    "Action": "s3:*",
+                    "Effect": "Deny",
+                    "Principal": "*",
+                    "Resource": [
+                      {
+                        "Fn::Join": [
+                          "",
+                          [
+                            "arn:",
+                            {
+                              "Ref": "AWS::Partition"
+                            },
+                            ":s3:::",
+                            {
+                              "Ref": "ServerlessDeploymentBucket"
+                            },
+                            "/*"
+                          ]
+                        ]
+                      },
+                      {
+                        "Fn::Join": [
+                          "",
+                          [
+                            "arn:",
+                            {
+                              "Ref": "AWS::Partition"
+                            },
+                            ":s3:::",
+                            {
+                              "Ref": "ServerlessDeploymentBucket"
+                            }
+                          ]
+                        ]
+                      }
+                    ],
+                    "Condition": {
+                      "Bool": {
+                        "aws:SecureTransport": false
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "Outputs": {
+          "ServerlessDeploymentBucketName": {
+            "Value": {
+              "Ref": "ServerlessDeploymentBucket"
+            }
+          }
+        }
+      },
+      "vpc": {}
+    },
+    "custom": {
+      "stage": "dev",
+      "logLevel": {
+        "prod": "INFO",
+        "default": "DEBUG"
+      },
+      "serverless-iam-roles-per-function": {
+        "defaultInherit": true
+      },
+      "StoryViewsService": {
+        "name": "openTelemetryStoryViews",
+        "namespace": "OPEN-TELEMETRY-STORY-VIEWS"
+      },
+      "StoryViewsTable": {
+        "name": {
+          "Ref": "StoryViewsTable"
+        },
+        "arn": {
+          "Fn::GetAtt": [
+            "StoryViewsTable",
+            "Arn"
+          ]
+        },
+        "streamArn": {
+          "Fn::GetAtt": [
+            "StoryViewsTable",
+            "StreamArn"
+          ]
+        }
+      },
+      "StoryViewsGETApi": {
+        "name": {
+          "Fn::Join": [
+            "",
+            [
+              "https://",
+              {
+                "Ref": "ApiGatewayRestApi"
+              },
+              ".execute-api.eu-west-2.amazonaws.com/dev/views"
+            ]
+          ]
+        },
+        "arn": "arn:aws:execute-api:#{AWS::Region}:#{AWS::AccountId}:*/*/GET/views/*"
+      },
+      "StoryViewsPOSTApi": {
+        "name": {
+          "Fn::Join": [
+            "",
+            [
+              "https://",
+              {
+                "Ref": "ApiGatewayRestApi"
+              },
+              ".execute-api.eu-west-2.amazonaws.com/dev/views/register"
+            ]
+          ]
+        },
+        "arn": "arn:aws:execute-api:#{AWS::Region}:#{AWS::AccountId}:*/*/POST/views/register"
+      },
+      "bundle": {
+        "linting": false
+      }
+    },
+    "plugins": [
+      "serverless-pseudo-parameters",
+      "serverless-iam-roles-per-function"
+    ],
+    "pluginsData": {},
+    "functions": {
+      "base": {
+        "handler": "functions/base.handler",
+        "layers": {
+          "$ref": "$[\"service\"][\"provider\"][\"compiledCloudFormationTemplate\"][\"Resources\"][\"BaseLambdaFunction\"][\"Properties\"][\"Layers\"]"
+        },
+        "events": [
+          {
+            "http": {
+              "path": "views",
+              "method": "any",
+              "private": true,
+              "cors": {
+                "origins": [
+                  "*"
+                ],
+                "origin": "*",
+                "methods": [
+                  "OPTIONS",
+                  "ANY"
+                ],
+                "headers": [
+                  "Content-Type",
+                  "X-Amz-Date",
+                  "Authorization",
+                  "X-Api-Key",
+                  "X-Amz-Security-Token",
+                  "X-Amz-User-Agent"
+                ],
+                "allowCredentials": false
+              },
+              "integration": "AWS_PROXY"
+            }
+          }
+        ],
+        "iamRoleStatements": [
+          {
+            "$ref": "$[\"service\"][\"provider\"][\"compiledCloudFormationTemplate\"][\"Resources\"][\"BaseIamRoleLambdaExecution\"][\"Properties\"][\"Policies\"][0][\"PolicyDocument\"][\"Statement\"][2]"
+          },
+          {
+            "$ref": "$[\"service\"][\"provider\"][\"compiledCloudFormationTemplate\"][\"Resources\"][\"BaseIamRoleLambdaExecution\"][\"Properties\"][\"Policies\"][0][\"PolicyDocument\"][\"Statement\"][3]"
+          }
+        ],
+        "environment": {
+          "STORY_VIEWS_GET_API": {
+            "$ref": "$[\"service\"][\"provider\"][\"compiledCloudFormationTemplate\"][\"Resources\"][\"BaseLambdaFunction\"][\"Properties\"][\"Environment\"][\"Variables\"][\"STORY_VIEWS_GET_API\"]"
+          },
+          "STORY_VIEWS_POST_API": {
+            "$ref": "$[\"service\"][\"provider\"][\"compiledCloudFormationTemplate\"][\"Resources\"][\"BaseLambdaFunction\"][\"Properties\"][\"Environment\"][\"Variables\"][\"STORY_VIEWS_POST_API\"]"
+          },
+          "AWS_LAMBDA_EXEC_WRAPPER": "/opt/otel-handler"
+        },
+        "name": "open-telemetry-story-views-dev-base",
+        "package": {},
+        "memory": 1024,
+        "timeout": 6,
+        "runtime": "nodejs14.x",
+        "vpc": {}
+      },
+      "getView": {
+        "handler": "functions/getView.handler",
+        "layers": {
+          "$ref": "$[\"service\"][\"provider\"][\"compiledCloudFormationTemplate\"][\"Resources\"][\"GetViewLambdaFunction\"][\"Properties\"][\"Layers\"]"
+        },
+        "events": [
+          {
+            "http": {
+              "path": "views/{id}",
+              "method": "get",
+              "integration": "AWS_PROXY"
+            }
+          }
+        ],
+        "iamRoleStatements": [
+          {
+            "$ref": "$[\"service\"][\"provider\"][\"compiledCloudFormationTemplate\"][\"Resources\"][\"GetViewIamRoleLambdaExecution\"][\"Properties\"][\"Policies\"][0][\"PolicyDocument\"][\"Statement\"][2]"
+          }
+        ],
+        "environment": {
+          "STORY_VIEWS_TABLE": {
+            "$ref": "$[\"service\"][\"provider\"][\"compiledCloudFormationTemplate\"][\"Resources\"][\"GetViewLambdaFunction\"][\"Properties\"][\"Environment\"][\"Variables\"][\"STORY_VIEWS_TABLE\"]"
+          },
+          "AWS_LAMBDA_EXEC_WRAPPER": "/opt/otel-handler"
+        },
+        "name": "open-telemetry-story-views-dev-getView",
+        "package": {},
+        "memory": 1024,
+        "timeout": 6,
+        "runtime": "nodejs14.x",
+        "vpc": {}
+      },
+      "registerView": {
+        "handler": "functions/registerView.handler",
+        "layers": {
+          "$ref": "$[\"service\"][\"provider\"][\"compiledCloudFormationTemplate\"][\"Resources\"][\"RegisterViewLambdaFunction\"][\"Properties\"][\"Layers\"]"
+        },
+        "events": [
+          {
+            "http": {
+              "path": "views/register",
+              "method": "post",
+              "integration": "AWS_PROXY"
+            }
+          }
+        ],
+        "iamRoleStatements": [
+          {
+            "$ref": "$[\"service\"][\"provider\"][\"compiledCloudFormationTemplate\"][\"Resources\"][\"RegisterViewIamRoleLambdaExecution\"][\"Properties\"][\"Policies\"][0][\"PolicyDocument\"][\"Statement\"][2]"
+          }
+        ],
+        "environment": {
+          "STORY_VIEWS_TABLE": {
+            "$ref": "$[\"service\"][\"provider\"][\"compiledCloudFormationTemplate\"][\"Resources\"][\"RegisterViewLambdaFunction\"][\"Properties\"][\"Environment\"][\"Variables\"][\"STORY_VIEWS_TABLE\"]"
+          },
+          "AWS_LAMBDA_EXEC_WRAPPER": "/opt/otel-handler"
+        },
+        "name": "open-telemetry-story-views-dev-registerView",
+        "package": {},
+        "memory": 1024,
+        "timeout": 6,
+        "runtime": "nodejs14.x",
+        "vpc": {}
+      },
+      "viewsAggregate": {
+        "handler": "functions/viewsAggregator.handler",
+        "layers": {
+          "$ref": "$[\"service\"][\"provider\"][\"compiledCloudFormationTemplate\"][\"Resources\"][\"ViewsAggregateLambdaFunction\"][\"Properties\"][\"Layers\"]"
+        },
+        "events": [
+          {
+            "stream": {
+              "type": "dynamodb",
+              "batchSize": 1,
+              "startingPosition": "LATEST",
+              "arn": {
+                "$ref": "$[\"service\"][\"provider\"][\"compiledCloudFormationTemplate\"][\"Resources\"][\"IamRoleLambdaExecution\"][\"Properties\"][\"Policies\"][0][\"PolicyDocument\"][\"Statement\"][4][\"Resource\"][0]"
+              }
+            }
+          }
+        ],
+        "iamRoleStatements": [
+          {
+            "$ref": "$[\"service\"][\"provider\"][\"compiledCloudFormationTemplate\"][\"Resources\"][\"ViewsAggregateIamRoleLambdaExecution\"][\"Properties\"][\"Policies\"][0][\"PolicyDocument\"][\"Statement\"][3]"
+          },
+          {
+            "$ref": "$[\"service\"][\"provider\"][\"compiledCloudFormationTemplate\"][\"Resources\"][\"ViewsAggregateIamRoleLambdaExecution\"][\"Properties\"][\"Policies\"][0][\"PolicyDocument\"][\"Statement\"][4]"
+          },
+          {
+            "$ref": "$[\"service\"][\"provider\"][\"compiledCloudFormationTemplate\"][\"Resources\"][\"ViewsAggregateIamRoleLambdaExecution\"][\"Properties\"][\"Policies\"][0][\"PolicyDocument\"][\"Statement\"][5]"
+          }
+        ],
+        "environment": {
+          "STORY_VIEWS_TABLE": {
+            "$ref": "$[\"service\"][\"provider\"][\"compiledCloudFormationTemplate\"][\"Resources\"][\"ViewsAggregateLambdaFunction\"][\"Properties\"][\"Environment\"][\"Variables\"][\"STORY_VIEWS_TABLE\"]"
+          },
+          "AWS_LAMBDA_EXEC_WRAPPER": "/opt/otel-handler"
+        },
+        "name": "open-telemetry-story-views-dev-viewsAggregate",
+        "package": {},
+        "memory": 1024,
+        "timeout": 6,
+        "runtime": "nodejs14.x",
+        "vpc": {}
+      }
+    },
+    "resources": {
+      "Resources": {
+        "StoryViewsTable": {
+          "Type": "AWS::DynamoDB::Table",
+          "Properties": {
+            "TableName": "StoryViewsTable-dev",
+            "AttributeDefinitions": [
+              {
+                "AttributeName": "id",
+                "AttributeType": "S"
+              }
+            ],
+            "KeySchema": [
+              {
+                "AttributeName": "id",
+                "KeyType": "HASH"
+              }
+            ],
+            "BillingMode": "PAY_PER_REQUEST",
+            "StreamSpecification": {
+              "StreamViewType": "NEW_IMAGE"
+            }
+          }
+        }
+      },
+      "Outputs": {}
+    },
+    "configValidationMode": "warn",
+    "serviceFilename": "serverless.yml",
+    "layers": {},
+    "initialServerlessConfig": {
+      "plugins": {
+        "$ref": "$[\"service\"][\"plugins\"]"
+      },
+      "service": {
+        "$ref": "$[\"service\"][\"serviceObject\"]"
+      },
+      "custom": {
+        "$ref": "$[\"service\"][\"custom\"]"
+      },
+      "provider": {
+        "$ref": "$[\"service\"][\"provider\"]"
+      },
+      "functions": {
+        "$ref": "$[\"service\"][\"functions\"]"
+      },
+      "resources": {
+        "$ref": "$[\"service\"][\"resources\"]"
+      }
+    },
+    "isDashboardMonitoringPreconfigured": false,
+    "artifact": "/home/achilles/new-serverless-stories-project/open-telemetry/.serverless/open-telemetry-story-views.zip"
+  },
+  "package": {
+    "artifactDirectoryName": "serverless/open-telemetry-story-views/dev/1622882716379-2021-06-05T08:45:16.379Z",
+    "artifact": "open-telemetry-story-views.zip"
+  }
+}

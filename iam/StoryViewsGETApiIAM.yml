@@ -1,0 +1,6 @@
+StoryViewsGETApiIAM:
+  Effect: Allow
+  Action:
+    - execute-api:Invoke
+  Resource:
+    - ${self:custom.StoryViewsGETApi.arn}

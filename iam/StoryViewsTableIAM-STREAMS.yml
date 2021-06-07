@@ -1,0 +1,9 @@
+StoryViewsTableIAM:
+  Effect: Allow
+  Action:
+    - dynamodb:GetRecords
+    - dynamodb:GetShardIterator
+    - dynamodb:DescribeStream
+    - dynamodb:ListStreams
+  Resource:
+    - ${self:custom.StoryViewsTable.arn}

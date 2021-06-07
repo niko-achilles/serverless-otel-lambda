@@ -1,0 +1,140 @@
+plugins:
+  - serverless-pseudo-parameters
+  - serverless-iam-roles-per-function
+
+service: open-telemetry-story-views
+
+custom:
+  stage: ${opt:stage, self:provider.stage}
+  logLevel:
+    prod: INFO
+    default: DEBUG
+  serverless-iam-roles-per-function:
+    defaultInherit: true
+  StoryViewsService:
+    name: openTelemetryStoryViews
+    namespace: OPEN-TELEMETRY-STORY-VIEWS
+  StoryViewsTable:
+    name: !Ref StoryViewsTable
+    arn: !GetAtt StoryViewsTable.Arn
+    streamArn: !GetAtt StoryViewsTable.StreamArn
+  StoryViewsGETApi:
+    name:
+      Fn::Join:
+        - ""
+        - - "https://"
+          - !Ref ApiGatewayRestApi
+          - ".execute-api.${self:provider.region}.amazonaws.com/${self:provider.stage}/views"
+    arn: arn:aws:execute-api:#{AWS::Region}:#{AWS::AccountId}:*/*/GET/views/*
+
+  StoryViewsPOSTApi:
+    name:
+      Fn::Join:
+        - ""
+        - - "https://"
+          - !Ref ApiGatewayRestApi
+          - ".execute-api.${self:provider.region}.amazonaws.com/${self:provider.stage}/views/register"
+    arn: arn:aws:execute-api:#{AWS::Region}:#{AWS::AccountId}:*/*/POST/views/register
+  bundle:
+    linting: false
+
+provider:
+  name: aws
+  runtime: nodejs14.x
+  versionFunctions: false
+  stage: "dev"
+  region: "eu-west-2"
+  apiGateway:
+    apiKeys:
+      - ${self:provider.stage}-privateKey
+    metrics: true
+  tracing:
+    apiGateway: true
+    lambda: true
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - xray:PutTraceSegments
+        - xray:PutTelemetryRecords
+      Resource: "*"
+  environment:
+    LOG_LEVEL: ${self:custom.logLevel.${self:custom.stage}, self:custom.logLevel.default}
+    STAGE: ${self:custom.stage}
+    NAMESPACE: ${self:custom.StoryViewsService.namespace}
+
+functions:
+  base:
+    handler: functions/base.handler
+    layers:
+      - arn:aws:lambda:eu-west-2:901920570463:layer:aws-otel-nodejs-ver-0-18-0:1
+    events:
+      - http:
+          path: /views
+          method: ANY
+          # authorizer: aws_iam
+          private: true
+          cors: true
+    iamRoleStatements:
+      - ${file(iam/StoryViewsGETApiIAM.yml):StoryViewsGETApiIAM}
+      - ${file(iam/StoryViewsPOSTApiIAM.yml):StoryViewsPOSTApiIAM}
+    environment:
+      STORY_VIEWS_GET_API: ${self:custom.StoryViewsGETApi.name}
+      STORY_VIEWS_POST_API: ${self:custom.StoryViewsPOSTApi.name}
+      AWS_LAMBDA_EXEC_WRAPPER: /opt/otel-handler
+      OPENTELEMETRY_COLLECTOR_CONFIG_FILE: /var/task/telemetry/collector-with-logzio-exporter.yaml
+
+  getView:
+    handler: functions/getView.handler
+    layers:
+      - arn:aws:lambda:eu-west-2:901920570463:layer:aws-otel-nodejs-ver-0-18-0:1
+    events:
+      - http:
+          path: /views/{id}
+          method: GET
+          # authorizer: aws_iam
+    iamRoleStatements:
+      - ${file(iam/StoryViewsTableIAM-READ.yml):StoryViewsTableIAM}
+    environment:
+      STORY_VIEWS_TABLE: ${self:custom.StoryViewsTable.name}
+      AWS_LAMBDA_EXEC_WRAPPER: /opt/otel-handler
+      OPENTELEMETRY_COLLECTOR_CONFIG_FILE: /var/task/telemetry/collector-with-logzio-exporter.yaml
+
+  registerView:
+    handler: functions/registerView.handler
+    layers:
+      - arn:aws:lambda:eu-west-2:901920570463:layer:aws-otel-nodejs-ver-0-18-0:1
+    events:
+      - http:
+          path: /views/register
+          method: POST
+          # authorizer: aws_iam
+    iamRoleStatements:
+      - ${file(iam/StoryViewsTableIAM-WRITE.yml):StoryViewsTableIAM}
+    environment:
+      STORY_VIEWS_TABLE: ${self:custom.StoryViewsTable.name}
+      AWS_LAMBDA_EXEC_WRAPPER: /opt/otel-handler
+      OPENTELEMETRY_COLLECTOR_CONFIG_FILE: /var/task/telemetry/collector-with-logzio-exporter.yaml
+
+  viewsAggregate:
+    handler: functions/viewsAggregator.handler
+    layers:
+      - arn:aws:lambda:eu-west-2:901920570463:layer:aws-otel-nodejs-ver-0-18-0:1
+    events:
+      - stream:
+          type: dynamodb
+          batchSize: 1
+          startingPosition: LATEST
+          arn: ${self:custom.StoryViewsTable.streamArn}
+    iamRoleStatements:
+      - ${file(iam/StoryViewsTableIAM-STREAMS.yml):StoryViewsTableIAM}
+      - ${file(iam/StoryViewsTableIAM-READ.yml):StoryViewsTableIAM}
+      - ${file(iam/StoryViewsTableIAM-WRITE.yml):StoryViewsTableIAM}
+    environment:
+      STORY_VIEWS_TABLE: ${self:custom.StoryViewsTable.name}
+      AWS_LAMBDA_EXEC_WRAPPER: /opt/otel-handler
+      OPENTELEMETRY_COLLECTOR_CONFIG_FILE: /var/task/telemetry/collector-with-logzio-exporter.yaml
+
+# you can add CloudFormation resource templates here
+resources:
+  Resources:
+    StoryViewsTable: ${file(resources/StoryViewsTable.yml):StoryViewsTable}

@@ -1,0 +1,20 @@
+{
+  "name": "functions",
+  "version": "1.0.0",
+  "description": "",
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@dazn/lambda-powertools-correlation-ids": "^1.28.1",
+    "@dazn/lambda-powertools-logger": "^1.28.1",
+    "@dazn/lambda-powertools-middleware-correlation-ids": "^1.29.0",
+    "@dazn/lambda-powertools-middleware-log-timeout": "^1.29.0",
+    "@dazn/lambda-powertools-middleware-sample-logging": "^1.29.0",
+    "@middy/core": "^1.5.2",
+    "@middy/http-cors": "^1.5.2",
+    "aws-sdk": "^2.920.0",
+    "aws4": "^1.11.0",
+    "axios": "^0.21.1"
+  }
+}

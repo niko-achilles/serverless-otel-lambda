@@ -1,0 +1,7 @@
+StoryViewsTableIAM:
+  Effect: Allow
+  Action:
+    - dynamodb:UpdateItem
+    - dynamodb:PutItem
+  Resource:
+    - ${self:custom.StoryViewsTable.arn}

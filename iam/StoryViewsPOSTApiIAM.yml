@@ -1,0 +1,6 @@
+StoryViewsPOSTApiIAM:
+  Effect: Allow
+  Action:
+    - execute-api:Invoke
+  Resource:
+    - ${self:custom.StoryViewsPOSTApi.arn}
