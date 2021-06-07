@@ -69,7 +69,6 @@ functions:
       - http:
           path: /views
           method: ANY
-          # authorizer: aws_iam
           private: true
           cors: true
     iamRoleStatements:
@@ -88,6 +87,7 @@ functions:
       - http:
           path: /views/{id}
           method: GET
+          #TODO: add authorizer
           # authorizer: aws_iam
     iamRoleStatements:
       - ${file(iam/StoryViewsTableIAM-READ.yml):StoryViewsTableIAM}
@@ -103,6 +103,7 @@ functions:
       - http:
           path: /views/register
           method: POST
+          #TODO: add authorizer
           # authorizer: aws_iam
     iamRoleStatements:
       - ${file(iam/StoryViewsTableIAM-WRITE.yml):StoryViewsTableIAM}
