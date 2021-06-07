@@ -35,8 +35,6 @@ custom:
           - !Ref ApiGatewayRestApi
           - ".execute-api.${self:provider.region}.amazonaws.com/${self:provider.stage}/views/register"
     arn: arn:aws:execute-api:#{AWS::Region}:#{AWS::AccountId}:*/*/POST/views/register
-  bundle:
-    linting: false
 
 provider:
   name: aws
