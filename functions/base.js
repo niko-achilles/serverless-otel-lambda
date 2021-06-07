@@ -16,17 +16,12 @@ const registerStoryView = async (storyId) => {
     method: "POST",
     headers: { "content-type": "application/json", ...CorrelationIds.get() },
     data: { id: storyId },
-    body: JSON.stringify({ id: storyId }),
     url: storyViewsPOSTApi,
   };
-  const signedRequest = aws4.sign(request);
-
-  delete signedRequest.headers["Host"];
-  delete signedRequest.headers["Content-Length"];
 
   Log.info("registering views...");
 
-  const resp = await axios(signedRequest);
+  const resp = await axios(request);
 
   Log.info("views registered...");
   return resp.data;
@@ -44,13 +39,7 @@ const fetchStoryViews = async (storyId) => {
     },
   };
 
-  // const signedRequest = aws4.sign(request);
-
-  // delete signedRequest.headers["Host"];
-
   Log.info("fetching views...");
-
-  // const resp = await axios(signedRequest);
   const resp = await axios(request);
   Log.info("views fetched...");
   return resp.data;
