@@ -95,7 +95,7 @@ functions:
     environment:
       STORY_VIEWS_TABLE: ${self:custom.StoryViewsTable.name}
       AWS_LAMBDA_EXEC_WRAPPER: /opt/otel-handler
-      OPENTELEMETRY_COLLECTOR_CONFIG_FILE: /var/task/telemetry/collector.yaml
+      # OPENTELEMETRY_COLLECTOR_CONFIG_FILE: /var/task/telemetry/collector.yaml
 
   registerView:
     handler: functions/registerView.handler
