@@ -41,7 +41,8 @@ const fetchStoryViews = async (storyId) => {
   Log.info("fetching views...");
   const resp = await axios(request);
   Log.info("views fetched...");
-  return resp.data;
+
+  return { data: resp.data, headers: resp.headers };
 };
 
 const base = async (event, context) => {
@@ -49,12 +50,10 @@ const base = async (event, context) => {
   const { storyId } = event.queryStringParameters;
 
   if (event.httpMethod === "GET") {
-    const storyViews = await fetchStoryViews(storyId);
+    const { data: storyViews, headers } = await fetchStoryViews(storyId);
+    Log.info("headers response GET VIEW", headers);
     response = {
       statusCode: 200,
-      headers: {
-        "content-type": "application/json",
-      },
       body: JSON.stringify(storyViews),
     };
   }

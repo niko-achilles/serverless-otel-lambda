@@ -1,5 +1,4 @@
 node_modules
 .serverless
 
-#folder for configuring colector of open-temetry ADOT-collector
 telemetry

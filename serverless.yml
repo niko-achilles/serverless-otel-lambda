@@ -78,6 +78,7 @@ functions:
       STORY_VIEWS_GET_API: ${self:custom.StoryViewsGETApi.name}
       STORY_VIEWS_POST_API: ${self:custom.StoryViewsPOSTApi.name}
       AWS_LAMBDA_EXEC_WRAPPER: /opt/otel-handler
+      # OPENTELEMETRY_COLLECTOR_CONFIG_FILE: /var/task/telemetry/collector.yaml
 
   getView:
     handler: functions/getView.handler
@@ -94,6 +95,7 @@ functions:
     environment:
       STORY_VIEWS_TABLE: ${self:custom.StoryViewsTable.name}
       AWS_LAMBDA_EXEC_WRAPPER: /opt/otel-handler
+      OPENTELEMETRY_COLLECTOR_CONFIG_FILE: /var/task/telemetry/collector.yaml
 
   registerView:
     handler: functions/registerView.handler
@@ -110,6 +112,7 @@ functions:
     environment:
       STORY_VIEWS_TABLE: ${self:custom.StoryViewsTable.name}
       AWS_LAMBDA_EXEC_WRAPPER: /opt/otel-handler
+      # OPENTELEMETRY_COLLECTOR_CONFIG_FILE: /var/task/telemetry/collector.yaml
 
   viewsAggregate:
     handler: functions/viewsAggregator.handler
@@ -128,6 +131,7 @@ functions:
     environment:
       STORY_VIEWS_TABLE: ${self:custom.StoryViewsTable.name}
       AWS_LAMBDA_EXEC_WRAPPER: /opt/otel-handler
+      # OPENTELEMETRY_COLLECTOR_CONFIG_FILE: /var/task/telemetry/collector.yaml
 
 # you can add CloudFormation resource templates here
 resources:

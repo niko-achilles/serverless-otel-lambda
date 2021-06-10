@@ -35,15 +35,8 @@ const registerView = async (event, context) => {
 
   Log.info("upserting story views...");
 
-  const start = Date.now();
+ 
   const storyViews = await upsertView(storyId);
-  const end = Date.now();
-
-  context.metrics.putMetric(
-    "UpsertStoryViewsLatency",
-    end - start,
-    Unit.Milliseconds
-  );
 
   const { id, views } = storyViews.Attributes;
 

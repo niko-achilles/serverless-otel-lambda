@@ -2,7 +2,7 @@ const DynamoDB = require("aws-sdk").DynamoDB;
 
 const Log = require("@dazn/lambda-powertools-logger");
 const commonMiddleware = require("./commonMiddleware");
-
+const CorrelationIds = require("@dazn/lambda-powertools-correlation-ids");
 const storyViewsDB = new DynamoDB.DocumentClient();
 const storyViewsTableName = process.env.STORY_VIEWS_TABLE;
 
@@ -22,9 +22,7 @@ const getView = async (event, context) => {
 
   Log.info("fetching story views...");
 
-
   const storyViews = await queryViews(id);
-
 
   Log.info("story views fetched...");
   Log.debug("received story with views", {
@@ -35,6 +33,7 @@ const getView = async (event, context) => {
   const response = {
     statusCode: 200,
     headers: {
+      ...CorrelationIds.get(),
       "content-type": "application/json",
     },
     body: JSON.stringify({ views: storyViews.Item?.views }),
