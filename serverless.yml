@@ -88,8 +88,7 @@ functions:
       - http:
           path: /views/{id}
           method: GET
-          #TODO: add authorizer
-          # authorizer: aws_iam
+          authorizer: aws_iam
     iamRoleStatements:
       - ${file(iam/StoryViewsTableIAM-READ.yml):StoryViewsTableIAM}
     environment:
@@ -105,8 +104,7 @@ functions:
       - http:
           path: /views/register
           method: POST
-          #TODO: add authorizer
-          # authorizer: aws_iam
+          authorizer: aws_iam
     iamRoleStatements:
       - ${file(iam/StoryViewsTableIAM-WRITE.yml):StoryViewsTableIAM}
     environment:
