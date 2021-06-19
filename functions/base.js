@@ -1,6 +1,7 @@
 const commonMiddleware = require("./commonMiddleware");
 const cors = require("@middy/http-cors");
 const axios = require("axios").default;
+
 const Log = require("@dazn/lambda-powertools-logger");
 const CorrelationIds = require("@dazn/lambda-powertools-correlation-ids");
 const aws4 = require("aws4");
@@ -21,17 +22,14 @@ const registerStoryView = async (storyId) => {
   };
   const signedRequest = aws4.sign(request);
 
-  Log.info("registering views...");
-
   const resp = await axios(signedRequest);
 
-  Log.info("views registered...");
   return resp.data;
 };
 
 const fetchStoryViews = async (storyId) => {
   const url = new URL(`${storyViewsGETApi}/${storyId}`, storyViewsGETApi);
-  let request = {
+  let options = {
     host: url.hostname,
     path: url.pathname,
     method: "GET",
@@ -41,11 +39,8 @@ const fetchStoryViews = async (storyId) => {
     },
   };
 
-  const signedRequest = aws4.sign(request);
-
-  Log.info("fetching views...");
+  const signedRequest = aws4.sign(options);
   const resp = await axios(signedRequest);
-  Log.info("views fetched...");
 
   return { data: resp.data, headers: resp.headers };
 };
@@ -55,9 +50,11 @@ const base = async (event, context) => {
   const { storyId } = event.queryStringParameters;
 
   if (event.httpMethod === "GET") {
-    const { data: storyViews, headers } = await fetchStoryViews(storyId);
+    Log.info("fetching views...");
+    const { data: storyViews, responseHeaders: headers } =
+      await fetchStoryViews(storyId);
 
-    Log.info("headers response GET VIEW", headers);
+    Log.info("views fetched", { storyViews });
 
     response = {
       statusCode: 200,
@@ -66,7 +63,12 @@ const base = async (event, context) => {
   }
 
   if (event.httpMethod === "POST") {
+    Log.info("registering views...");
+
     const storyViews = await registerStoryView(storyId);
+
+    Log.info("views registered", { storyViews });
+
     response = {
       statusCode: 200,
       headers: {

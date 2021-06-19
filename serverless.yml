@@ -64,7 +64,7 @@ functions:
   base:
     handler: functions/base.handler
     layers:
-      - arn:aws:lambda:eu-west-2:901920570463:layer:aws-otel-nodejs-ver-0-18-0:1
+      - arn:aws:lambda:eu-west-2:901920570463:layer:aws-otel-nodejs-ver-0-19-0:1
     events:
       - http:
           path: /views
@@ -83,7 +83,7 @@ functions:
   getView:
     handler: functions/getView.handler
     layers:
-      - arn:aws:lambda:eu-west-2:901920570463:layer:aws-otel-nodejs-ver-0-18-0:1
+      - arn:aws:lambda:eu-west-2:901920570463:layer:aws-otel-nodejs-ver-0-19-0:1
     events:
       - http:
           path: /views/{id}
@@ -99,7 +99,7 @@ functions:
   registerView:
     handler: functions/registerView.handler
     layers:
-      - arn:aws:lambda:eu-west-2:901920570463:layer:aws-otel-nodejs-ver-0-18-0:1
+      - arn:aws:lambda:eu-west-2:901920570463:layer:aws-otel-nodejs-ver-0-19-0:1
     events:
       - http:
           path: /views/register
